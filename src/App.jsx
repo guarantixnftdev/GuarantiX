@@ -1,24 +1,39 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar";
+import { useMemo } from "react";
+import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
+import {
+  PhantomWalletAdapter,
+  BackpackWalletAdapter,
+  SolflareWalletAdapter,
+  SolletExtensionWalletAdapter,
+} from "@solana/wallet-adapter-wallets";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
+
 import Home from "./pages/Home";
-import Dashboard from "./pages/Dashboard";
-import { WalletContextProvider } from "./contexts/WalletContext";
+
+// Важливо: це для dev/test — використовуй свій RPC при продакшн-розгортанні
+const endpoint = "https://api.mainnet-beta.solana.com";
 
 function App() {
+  const wallets = useMemo(
+    () => [
+      new PhantomWalletAdapter(),
+      new BackpackWalletAdapter(),
+      new SolflareWalletAdapter({ network: WalletAdapterNetwork.Mainnet }),
+      new SolletExtensionWalletAdapter(),
+    ],
+    []
+  );
+
   return (
-    <WalletContextProvider>
-      <Router>
-        <div className="bg-gray-100 min-h-screen">
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-          </Routes>
-        </div>
-      </Router>
-    </WalletContextProvider>
+    <ConnectionProvider endpoint={endpoint}>
+      <WalletProvider wallets={wallets} autoConnect>
+        <WalletModalProvider>
+          <Home />
+        </WalletModalProvider>
+      </WalletProvider>
+    </ConnectionProvider>
   );
 }
 
 export default App;
-
