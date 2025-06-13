@@ -26,14 +26,22 @@ export const mintWarrantyNFT2 = async (
 ) => {
   const metadata = {
     name,
+    symbol: "GUARANTIX", // Унікальний символ для NFT твого додатку
     description: `${description} | Гарантия: ${warrantyPeriod} мес.`,
     image: "https://placehold.co/400x300.png?text=GuarantiX+NFT",
+    attributes: [
+      {
+        trait_type: "warrantyPeriod",
+        value: warrantyPeriod,
+      },
+    ],
   };
 
   const { uri } = await metaplex.nfts().uploadMetadata(metadata);
   await metaplex.nfts().create({
     uri: uri,
     name: metadata.name,
+    symbol: metadata.symbol,
     sellerFeeBasisPoints: 0,
     updateAuthority: creatorPubkey,
   });
@@ -44,6 +52,7 @@ export async function mintWarrantyNFT(wallet, metadata) {
   const { nft } = await metaplex.nfts().create({
     uri: metadata.uri,
     name: metadata.name,
+    symbol: "GUARANTIX", // Додано символ
     warrantyPeriod: metadata.warrantyPeriod,
     sellerFeeBasisPoints: 0,
     maxSupply: 1,
@@ -54,19 +63,15 @@ export async function mintWarrantyNFT(wallet, metadata) {
 // Получение NFT пользователя
 
 export const getUserNFTs = async (publicKey) => {
-  // Знаходимо всі NFT, що належать користувачу
   const nfts = await metaplex
     .nfts()
     .findAllByOwner({ owner: new PublicKey(publicKey) });
 
-  // Завантажуємо JSON метадані вручну з надійного шлюзу
   const detailedNfts = await Promise.all(
     nfts.map(async (nft) => {
       try {
-        // Підміняємо URI на надійний IPFS-шлюз
-        const cid = nft.uri.split("/").pop(); // отримуємо CID з URI
+        const cid = nft.uri.split("/").pop();
         const fixedUri = `https://ipfs.io/ipfs/${cid}`;
-
         const response = await fetch(fixedUri);
         const json = await response.json();
 
@@ -87,7 +92,12 @@ export const getUserNFTs = async (publicKey) => {
     })
   );
 
-  return detailedNfts;
+  // Фільтруємо тільки NFT з символом GUARANTIX
+  const filtered = detailedNfts.filter(
+    (nft) => nft.json?.symbol === "GUARANTIX"
+  );
+
+  return filtered;
 };
 
 // Передача NFT другому пользователю
