@@ -23,7 +23,7 @@ function Dashboard() {
     <>
       {connected && publicKey ? (
         <div className="p-8 bg-white min-h-screen space-y-8">
-          <div className="max-w-[500px] m-auto mb-50">
+          <div className="max-w-[500px] m-auto mb-20">
             <h2 className="text-6xl text-[#513490] font-semibold text-primary text-center mb-5">
               Your Guarantees
             </h2>
